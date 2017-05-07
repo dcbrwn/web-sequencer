@@ -27,7 +27,7 @@ initGrid(BARS, NOTES, grid);
 function initGrid(barsCount, notesCount, table) {
   grid.style.width = (barsCount + 1) * 30 + 'px';
 
-  const noteLabels = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const noteLabels = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
 
   for (let noteNumber = notesCount - 1; noteNumber >= 0; noteNumber -= 1) {
     const row = document.createElement('tr');

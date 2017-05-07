@@ -1,4 +1,6 @@
-module.exports = class EventEmitter {
+'use strict';
+
+class EventEmitter {
   constructor() {
     this.listeners = {};
   }

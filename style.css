@@ -4,25 +4,29 @@ html, body {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
-#piano-roll {
+#piano-roll table#grid {
+  table-layout: fixed;
   border-collapse: collapse;
   margin: 0 auto;
 }
 
-#piano-roll tr.alter {
+#piano-roll table#grid tr.alter {
   background-color: hsl(180, 50%, 95%);
 }
 
-#piano-roll td:nth-child(8n - 6) {
+#piano-roll table#grid td:nth-child(8n - 6) {
   background-color: hsla(180, 50%, 80%, 0.4);
 }
 
-#piano-roll td {
+#piano-roll table#grid td {
   width: 30px;
   height: 30px;
   border: 1px solid hsl(180, 50%, 80%);
 }
 
-#piano-roll td.active {
-  background-color: hsl(0, 50%, 50%);
+#piano-roll .note {
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(hsl(0, 50%, 90%), hsl(0, 50%, 50%));
+  border-radius: 5px;
 }

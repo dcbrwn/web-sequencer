@@ -19,60 +19,55 @@ player.on('event', (params) => {
 });
 player.play();
 
-initGrid(BARS, NOTES, document.getElementById('piano-roll'));
+const pianoRoll = document.getElementById('piano-roll');
+const grid = document.getElementById('grid');
 
-function setNote(note, bar) {
-  scenario.push({
-    time: bar * TICK_TIME,
-    type: 'noteOn',
-    note: note,
-  });
+initGrid(BARS, NOTES, grid);
 
-  player.load(scenario);
-}
+function initGrid(barsCount, notesCount, table) {
+  grid.style.width = (barsCount + 1) * 30 + 'px';
 
-// TODO: This looks inefficient! Probably need to change the way how grid
-// integrates with scenario
-function clearNote(note, bar) {
-  scenario = scenario.filter((event) => {
-    const isNoteOn = event.type === 'noteOn'
-      && event.time === bar * TICK_TIME
-      && event.note === note;
+  const noteLabels = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
-    if (isNoteOn) {
-      return false;
-    }
-
-    return true;
-  });
-
-  player.load(scenario);
-}
-
-function initGrid(x, y, table) {
-  const colors = [0,1,0,1,0,0,1,0,1,0,1,0];
-  const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-
-  for (let i = y - 1; i >= 0; i -= 1) {
+  for (let noteNumber = notesCount - 1; noteNumber >= 0; noteNumber -= 1) {
     const row = document.createElement('tr');
 
-    if (colors[i % 12]) {
+    if (noteLabels[noteNumber % 12][1] === '#') {
       row.classList.add('alter');
     }
 
-    for (let j = -1; j < x; j += 1) {
+    for (let bar = -1; bar < barsCount; bar += 1) {
       const cell = document.createElement('td');
 
-      if (j === -1) {
-        cell.innerText = notes[i % 12];
+      if (bar === -1) {
+        cell.innerText = noteLabels[noteNumber % 12];
       } else {
-        cell.onclick = function() {
-          if (!cell.classList.contains('active')) {
-            setNote(i, j);
-          } else {
-            clearNote(i, j);
-          }
-          cell.classList.toggle('active');
+        cell.onclick = (event) => {
+          // Add note to scenario
+          const note = {
+            time: bar * TICK_TIME,
+            type: 'noteOn',
+            note: noteNumber,
+          };
+          scenario.push(note);
+          player.load(scenario);
+
+          // Add note to piano roll
+          const noteElement = document.createElement('div');
+          noteElement.classList.add('note');
+          // We also need to compensate borders of cells
+          noteElement.style.top = cell.offsetTop + 1 + 'px';
+          noteElement.style.left = cell.offsetLeft + 1 + 'px';
+
+          // Add ability to remove note
+          noteElement.onclick = function(event) {
+            event.stopPropagation();
+            scenario = scenario.filter((value) => value !== note);
+            player.load(scenario);
+            // pianoRoll.removeChild(noteElement);
+            this.parentNode.removeChild(this);
+          };
+          cell.appendChild(noteElement);
         }
       }
 
@@ -114,7 +109,7 @@ function initAudio() {
 function noteOn(note) {
   const velocity = 0.3;
   const oscillator = audioCtx.createOscillator();
-  oscillator.type = 'triangle';
+  oscillator.type = 'sine';
   oscillator.frequency.value = getNoteFrequency(note);
   oscillator.connect(engine.master);
 

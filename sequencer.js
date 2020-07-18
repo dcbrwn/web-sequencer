@@ -113,7 +113,7 @@ function initAudio() {
     master: audioCtx.createGain(),
   };
 
-  engine.master.gain.value = 0;
+  engine.master.gain.value = 1.0;
 
   const ajaxRequest = new XMLHttpRequest();
   ajaxRequest.open('GET', 'reverb.wav', true);
@@ -125,6 +125,7 @@ function initAudio() {
       reverb.buffer = buffer;
       engine.master.connect(reverb);
       reverb.connect(audioCtx.destination);
+      // engine.master.connect(audioCtx.destination);
     }, function(error) {
       throw error;
     });
@@ -135,26 +136,40 @@ function initAudio() {
   return engine;
 }
 
-function noteOn(note) {
+async function noteOn(note) {
   const velocity = 0.3;
+  const attenuator = audioCtx.createGain();
+  attenuator.connect(engine.master);
+
   const oscillator = audioCtx.createOscillator();
   oscillator.type = 'sine';
   oscillator.frequency.value = getNoteFrequency(note);
-  oscillator.connect(engine.master);
+  oscillator.connect(attenuator);
+
+  const startTime = audioCtx.currentTime;
 
   engine.poly += 1;
-  engine.master.gain.value = (1 / engine.poly) * velocity;
 
   oscillator.start();
+  attenuator.gain.setValueAtTime(1e-10, startTime);
+  attenuator.gain.exponentialRampToValueAtTime((1 / engine.poly) * velocity, startTime + 0.05);
+  attenuator.gain.linearRampToValueAtTime(0, startTime + 0.2);
 
-  setTimeout(() => {
-    oscillator.stop();
-    oscillator.disconnect(engine.master);
-    engine.poly -= 1;
-    engine.master.gain.value = engine.poly === 0
-      ? 1.0
-      : (1 / engine.poly) * velocity;
-  }, TICK_TIME);
+  await delay(10);
+
+  engine.poly -= 1;
+
+  await delay(500);
+
+  oscillator.stop();
+  attenuator.disconnect(engine.master);
+  oscillator.disconnect(attenuator);
+}
+
+function delay(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  })
 }
 
 function getNoteFrequency(note) {

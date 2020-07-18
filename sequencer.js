@@ -9,12 +9,29 @@ const engine = initAudio();
 
 let scenario = [
   { time: 0, type: 'start' },
-  { time: BARS * TICK_TIME, type: 'end' },
 ];
+
+for (let i = 0; i < BARS; i += 1) {
+  scenario.push({
+    time: i * TICK_TIME,
+    type: 'active',
+    bar: i + 1,
+  });
+}
+
+scenario.push({ time: BARS * TICK_TIME, type: 'end' });
+
 const player = new ScenarioPlayer(scenario);
+let currentBar = 0;
 player.on('event', (params) => {
   if (params.event.type === 'noteOn') {
     noteOn(params.event.note);
+  } else if (params.event.type === 'active') {
+    const currentCol = document.getElementById('bar' + currentBar);
+    currentCol.classList.remove("active");
+    currentBar = params.event.bar;
+    const nextCol = document.getElementById('bar' + currentBar);
+    nextCol.classList.add("active");
   }
 });
 player.play();
@@ -28,6 +45,18 @@ function initGrid(barsCount, notesCount, table) {
   grid.style.width = (barsCount + 1) * 30 + 'px';
 
   const noteLabels = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+
+  const colGroup = document.createElement('colgroup');
+
+  for (let i = 0; i <= barsCount; i += 1) {
+    const col = document.createElement('col');
+    col.id = 'bar' + i;
+    col.classList.add("bar");
+    colGroup.appendChild(col);
+  }
+
+  table.appendChild(colGroup);
+
 
   for (let noteNumber = notesCount - 1; noteNumber >= 0; noteNumber -= 1) {
     const row = document.createElement('tr');
